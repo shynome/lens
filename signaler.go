@@ -20,9 +20,12 @@ type Signaler struct {
 	scopes *UserScopes
 
 	CallTimeout time.Duration
+	MaxFileSize int64
 }
 
 var _ http.Handler = &Signaler{}
+
+var mb = int64(math.Pow(2, 10))
 
 func New(scopes *UserScopes) (s *Signaler) {
 	if scopes == nil {
@@ -32,6 +35,7 @@ func New(scopes *UserScopes) (s *Signaler) {
 		scopes: scopes,
 
 		CallTimeout: time.Minute,
+		MaxFileSize: 4 * mb,
 	}
 }
 
@@ -43,13 +47,10 @@ func (s *Signaler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-var mb = int64(math.Pow(2, 10))
-var maxFileSize = 4 * mb
-
 func (s *Signaler) serveHTTP(w http.ResponseWriter, r *http.Request) (err error) {
 	defer err2.Return(&err)
 
-	r.Body = http.MaxBytesReader(w, r.Body, maxFileSize)
+	r.Body = http.MaxBytesReader(w, r.Body, s.MaxFileSize)
 
 	user, pass, _ := r.BasicAuth()
 	auth := UserAuth{user, pass}
