@@ -35,7 +35,7 @@ func TestSignaler(t *testing.T) {
 	var l = try.To1(
 		net.Listen("tcp", "127.0.0.1:0"))
 	defer l.Close()
-	s := signaler.New()
+	s := signaler.New(nil)
 	s.CallTimeout = 10 * time.Second
 	endpoint := fmt.Sprintf("http://a:b@%s/signaler?t=7", l.Addr())
 	http.Handle("/signaler", s)

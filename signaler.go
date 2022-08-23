@@ -24,9 +24,12 @@ type Signaler struct {
 
 var _ http.Handler = &Signaler{}
 
-func New() (s *Signaler) {
+func New(scopes *UserScopes) (s *Signaler) {
+	if scopes == nil {
+		scopes = NewUserScopes()
+	}
 	return &Signaler{
-		scopes: NewUserScopes(),
+		scopes: scopes,
 
 		CallTimeout: time.Minute,
 	}
