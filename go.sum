@@ -1,0 +1,6 @@
+github.com/donovanhide/eventsource v0.0.0-20210830082556-c59027999da0 h1:C7t6eeMaEQVy6e8CarIhscYQlNmw5e3G36y7l7Y21Ao=
+github.com/donovanhide/eventsource v0.0.0-20210830082556-c59027999da0/go.mod h1:56wL82FO0bfMU5RvfXoIwSOP2ggqqxT+tAfNEIyxuHw=
+github.com/lainio/err2 v0.8.8 h1:GSjsxg39BOuSNIzsLYbv2+QWP5SLHRf/AIQ+9v4kzfE=
+github.com/lainio/err2 v0.8.8/go.mod h1:FmcNs9IbLaDMScvPX4iO5dBsbHl8EnS3ybqP31z/RUk=
+github.com/rs/xid v1.4.0 h1:qd7wPTDkN6KQx2VmMBLrpHkiyQwgFXRnkOLacUiaSNY=
+github.com/rs/xid v1.4.0/go.mod h1:trrq9SKmegXys3aeAKXMUTdJsYXVwGY3RLcfgqegfbg=
