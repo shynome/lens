@@ -63,10 +63,15 @@ func (s *Signaler) serveHTTP(w http.ResponseWriter, r *http.Request) (err error)
 	case http.MethodDelete:
 		return s.DialTask(w, r)
 	default:
-		http.Error(w, fmt.Sprintf("deny method: %s \r\n", r.Method), 400)
+		http.Error(w, fmt.Sprintf("deny method: %s \r\n", r.Method), http.StatusMethodNotAllowed)
 	}
 	return
 }
+
+var (
+	errTopicRequired = fmt.Errorf("topic is not selected")
+	errTaskTimeout   = fmt.Errorf("too long to wait task dail")
+)
 
 func (s *Signaler) SubTasks(w http.ResponseWriter, r *http.Request) (err error) {
 	defer err2.Return(&err)
@@ -78,7 +83,7 @@ func (s *Signaler) SubTasks(w http.ResponseWriter, r *http.Request) (err error) 
 
 	topic := r.URL.Query().Get("t")
 	if topic == "" {
-		return fmt.Errorf("topic is not selected")
+		return errTopicRequired
 	}
 	ess.Handler(topic)(w, r)
 	return
@@ -101,7 +106,7 @@ func (s *Signaler) HandleCall(w http.ResponseWriter, r *http.Request) (err error
 	ev := &sdk.Task{ID: id, Body: b}
 	topic := r.URL.Query().Get("t")
 	if topic == "" {
-		return fmt.Errorf("topic is not selected")
+		return errTopicRequired
 	}
 
 	ess := scope.EventSourceServer()
@@ -109,7 +114,7 @@ func (s *Signaler) HandleCall(w http.ResponseWriter, r *http.Request) (err error
 
 	select {
 	case <-time.After(s.CallTimeout):
-		http.Error(w, "too long to wait task dail", http.StatusGatewayTimeout)
+		http.Error(w, errTaskTimeout.Error(), http.StatusGatewayTimeout)
 
 	case rbody := <-result:
 		h := w.Header()

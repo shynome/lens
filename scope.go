@@ -25,6 +25,10 @@ type UserScope struct {
 
 var UserScopeCtxKey struct{}
 
+var (
+	errPasswordIncorrect = fmt.Errorf("password is incorrect")
+)
+
 func GetUserScope(ctx context.Context) (s *UserScope, err error) {
 	s, ok := ctx.Value(UserScopeCtxKey).(*UserScope)
 	if !ok {
@@ -36,7 +40,7 @@ func GetUserScope(ctx context.Context) (s *UserScope, err error) {
 func NewUserScope(auth UserAuth) (s *UserScope, err error) {
 
 	if auth.Username == "" {
-		return nil, fmt.Errorf("unknown user")
+		return nil, errUsernameRequired
 	}
 
 	s = &UserScope{
@@ -56,7 +60,7 @@ func (scope *UserScope) CheckPassword(pass string) (err error) {
 		return
 	}
 	if scope.Auth.Password != pass {
-		return fmt.Errorf("password is incorrect")
+		return errPasswordIncorrect
 	}
 	return
 }
