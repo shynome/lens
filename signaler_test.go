@@ -37,8 +37,9 @@ func TestSignaler(t *testing.T) {
 	defer l.Close()
 	s := signaler.New()
 	s.CallTimeout = 10 * time.Second
-	endpoint := fmt.Sprintf("http://a:b@%s?t=7", l.Addr())
-	go http.Serve(l, s)
+	endpoint := fmt.Sprintf("http://a:b@%s/signaler?t=7", l.Addr())
+	http.Handle("/signaler", s)
+	go http.Serve(l, nil)
 	handleTask(endpoint)
 
 	sdk := sdk.New(endpoint)
