@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -10,7 +11,11 @@ import (
 	"github.com/shynome/signaler"
 )
 
+var Version = "dev"
+
 var args struct {
+	PrintVersion bool
+
 	Addr               string
 	AutoCreate         bool
 	ScopeCheckInterval string
@@ -19,6 +24,8 @@ var args struct {
 }
 
 func init() {
+	flag.BoolVar(&args.PrintVersion, "version", false, "print version")
+
 	flag.StringVar(&args.Addr, "addr", ":7070", "listen addr")
 	flag.BoolVar(&args.AutoCreate, "auto-create", true, "allow auto create user scope")
 	flag.StringVar(&args.ScopeCheckInterval, "check-interval", "1s", "check user scope is should be delete interval")
@@ -28,6 +35,11 @@ func init() {
 
 func main() {
 	flag.Parse()
+
+	if args.PrintVersion {
+		fmt.Println("version:", Version)
+		return
+	}
 
 	scopes := signaler.NewUserScopes()
 	scopes.DisableAutoCreate = args.AutoCreate
