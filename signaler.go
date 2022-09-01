@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"math"
 	"net/http"
 	"time"
@@ -42,8 +41,7 @@ func New(scopes *UserScopes) (s *Signaler) {
 func (s *Signaler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err := s.serveHTTP(w, r)
 	if err != nil {
-		log.Println("err: ", err)
-		http.Error(w, "server error", 500)
+		http.Error(w, fmt.Sprintf("err: %s", err), 500)
 	}
 }
 
