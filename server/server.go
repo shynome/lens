@@ -42,7 +42,7 @@ func main() {
 	}
 
 	scopes := signaler.NewUserScopes()
-	scopes.DisableAutoCreate = args.AutoCreate
+	scopes.DisableAutoCreate = !args.AutoCreate
 	scopes.ScopeCheckInterval = try.To1(
 		time.ParseDuration(args.ScopeCheckInterval))
 	scopes.ScopeSurvivalTime = try.To1(
