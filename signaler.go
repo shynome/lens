@@ -51,7 +51,7 @@ func (s *Signaler) serveHTTP(w http.ResponseWriter, r *http.Request) (err error)
 	r.Body = http.MaxBytesReader(w, r.Body, s.MaxFileSize)
 
 	user, pass, _ := r.BasicAuth()
-	auth := UserAuth{user, pass}
+	auth := UserAuth{user, pass, r.URL.Query().Get("w")}
 	scope := try.To1(
 		s.scopes.Get(auth))
 	ctx := context.WithValue(r.Context(), UserScopeCtxKey, scope)
@@ -59,6 +59,10 @@ func (s *Signaler) serveHTTP(w http.ResponseWriter, r *http.Request) (err error)
 
 	switch r.Method {
 	case http.MethodGet:
+		if scope == nil {
+			r = try.To1(
+				s.CreateScope(r, auth))
+		}
 		return s.SubTasks(w, r)
 	case http.MethodPost:
 		return s.HandleCall(w, r)
@@ -70,6 +74,21 @@ func (s *Signaler) serveHTTP(w http.ResponseWriter, r *http.Request) (err error)
 	return
 }
 
+func (s *Signaler) CreateScope(r *http.Request, auth UserAuth) (r2 *http.Request, err error) {
+	defer err2.Return(&err)
+
+	scopes := s.scopes
+
+	scope := try.To1(
+		scopes.AutoCreate(auth))
+	go scopes.DeleteAfter(scope, scopes.ScopeSurvivalTime)
+
+	ctx := context.WithValue(r.Context(), UserScopeCtxKey, scope)
+	r2 = r.WithContext(ctx)
+
+	return
+}
+
 var (
 	errTopicRequired = fmt.Errorf("topic is not selected")
 	errTaskTimeout   = fmt.Errorf("too long to wait task dail")
@@ -78,12 +97,16 @@ var (
 func (s *Signaler) SubTasks(w http.ResponseWriter, r *http.Request) (err error) {
 	defer err2.Return(&err)
 
+	q := r.URL.Query()
+
 	scope := try.To1(
 		GetUserScope(r.Context()))
+	try.To(
+		scope.CheckWorkerToken(q.Get("w")))
 
 	ess := scope.EventSourceServer()
 
-	topic := r.URL.Query().Get("t")
+	topic := q.Get("t")
 	if topic == "" {
 		return errTopicRequired
 	}
@@ -131,8 +154,12 @@ func (s *Signaler) HandleCall(w http.ResponseWriter, r *http.Request) (err error
 func (s *Signaler) DialTask(w http.ResponseWriter, r *http.Request) (err error) {
 	defer err2.Return(&err)
 
+	q := r.URL.Query()
+
 	scope := try.To1(
 		GetUserScope(r.Context()))
+	try.To(
+		scope.CheckWorkerToken(q.Get("w")))
 
 	id := r.Header.Get("X-Event-Id")
 	b := try.To1(

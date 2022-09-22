@@ -12,6 +12,7 @@ import (
 type UserAuth struct {
 	Username string
 	Password string
+	WToken   string
 }
 
 type UserScope struct {
@@ -26,13 +27,15 @@ type UserScope struct {
 var UserScopeCtxKey struct{}
 
 var (
-	errPasswordIncorrect = fmt.Errorf("password is incorrect")
+	ErrPasswordIncorrect    = fmt.Errorf("password is incorrect")
+	ErrWorkerTokenIncorrect = fmt.Errorf("worker token is incorrect")
+	ErrUserScopeNotReady    = fmt.Errorf("get *UserScope failed")
 )
 
 func GetUserScope(ctx context.Context) (s *UserScope, err error) {
 	s, ok := ctx.Value(UserScopeCtxKey).(*UserScope)
 	if !ok {
-		return nil, fmt.Errorf("get *UserScope failed")
+		return nil, ErrUserScopeNotReady
 	}
 	return
 }
@@ -60,7 +63,17 @@ func (scope *UserScope) CheckPassword(pass string) (err error) {
 		return
 	}
 	if scope.Auth.Password != pass {
-		return errPasswordIncorrect
+		return ErrPasswordIncorrect
+	}
+	return
+}
+
+func (scope *UserScope) CheckWorkerToken(wt string) (err error) {
+	if scope.Auth.Password == "" {
+		return
+	}
+	if scope.Auth.WToken != wt {
+		return ErrWorkerTokenIncorrect
 	}
 	return
 }

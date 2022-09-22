@@ -58,15 +58,14 @@ func (scopes *UserScopes) Get(auth UserAuth) (s *UserScope, err error) {
 		return
 	}
 
-	if scopes.DisableAutoCreate {
-		return nil, errPasswordIncorrect // 使用和上一步同样的错误, 避免用户探测
-	}
-
-	s = try.To1(
-		scopes.Create(auth))
-	go scopes.DeleteAfter(s, scopes.ScopeSurvivalTime)
-
 	return
+}
+
+func (scopes *UserScopes) AutoCreate(auth UserAuth) (s *UserScope, err error) {
+	if scopes.DisableAutoCreate {
+		return nil, ErrPasswordIncorrect // 使用密码错误, 避免用户探测
+	}
+	return scopes.Create(auth)
 }
 
 func (scopes *UserScopes) Create(auth UserAuth) (s *UserScope, err error) {

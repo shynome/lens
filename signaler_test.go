@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -68,4 +69,35 @@ func handleTask(endpoint string) {
 			}(ev)
 		}
 	}()
+}
+
+func TestSignalerWithToken(t *testing.T) {
+	var l = try.To1(
+		net.Listen("tcp", "127.0.0.1:0"))
+	defer l.Close()
+
+	// 启动信令服务器
+	s := signaler.New(nil)
+	s.CallTimeout = 10 * time.Second
+	endpoint := fmt.Sprintf("http://a:b@%s/signaler?t=7", l.Addr())
+	http.Handle("/signaler", s)
+	go http.Serve(l, nil)
+
+	handleTask(endpoint + "&w=2333333") //监听消息并处理
+
+	_, err := eventsource.Subscribe(endpoint, "") //测试 token
+	if !strings.Contains(err.Error(), signaler.ErrWorkerTokenIncorrect.Error()) {
+		t.Error(err)
+		return
+	}
+
+	// 呼叫对应主题消息任务处理器
+	sdk := sdk.New(endpoint)
+	rData := try.To1(
+		sdk.Call(testData))
+
+	if !bytes.Equal(rData, testData) {
+		t.Errorf("got %s, expect %s", rData, testData)
+		return
+	}
 }
