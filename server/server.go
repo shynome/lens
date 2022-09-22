@@ -54,12 +54,25 @@ func main() {
 
 	for _, userStr := range flag.Args() {
 		userArr := strings.Split(userStr, ":")
-		if len(userArr) == 1 {
+		var (
+			user string
+			pass string
+			wt   string
+		)
+		switch len(userArr) {
+		case 1:
+			fallthrough
+		default:
 			continue
+		case 2:
+			user = userArr[0]
+			pass = userArr[1]
+		case 3:
+			user = userArr[0]
+			wt = userArr[1]
+			pass = strings.Join(userArr[2:], ":")
 		}
-		pass := strings.Join(userArr[1:], ":")
-		user := userArr[0]
-		try.To1(scopes.Create(signaler.UserAuth{Username: user, Password: pass}))
+		try.To1(scopes.Create(signaler.UserAuth{Username: user, Password: pass, WToken: wt}))
 	}
 
 	http.ListenAndServe(args.Addr, s)
