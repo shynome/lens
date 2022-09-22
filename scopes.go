@@ -65,7 +65,12 @@ func (scopes *UserScopes) AutoCreate(auth UserAuth) (s *UserScope, err error) {
 	if scopes.DisableAutoCreate {
 		return nil, ErrPasswordIncorrect // 使用密码错误, 避免用户探测
 	}
-	return scopes.Create(auth)
+	s, err = scopes.Create(auth)
+	if err != nil {
+		return
+	}
+	go scopes.DeleteAfter(s, scopes.ScopeSurvivalTime)
+	return
 }
 
 func (scopes *UserScopes) Create(auth UserAuth) (s *UserScope, err error) {

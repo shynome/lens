@@ -81,7 +81,6 @@ func (s *Signaler) CreateScope(r *http.Request, auth UserAuth) (r2 *http.Request
 
 	scope := try.To1(
 		scopes.AutoCreate(auth))
-	go scopes.DeleteAfter(scope, scopes.ScopeSurvivalTime)
 
 	ctx := context.WithValue(r.Context(), UserScopeCtxKey, scope)
 	r2 = r.WithContext(ctx)
