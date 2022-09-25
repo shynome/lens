@@ -50,6 +50,10 @@ func (s *Signaler) serveHTTP(w http.ResponseWriter, r *http.Request) (err error)
 
 	r.Body = http.MaxBytesReader(w, r.Body, s.MaxFileSize)
 
+	h := w.Header()
+	h.Set("Access-Control-Allow-Origin", "*")
+	h.Set("Access-Control-Allow-Methods", "*")
+
 	user, pass, _ := r.BasicAuth()
 	auth := UserAuth{user, pass, r.URL.Query().Get("w")}
 	scope := try.To1(
