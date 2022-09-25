@@ -53,6 +53,12 @@ func (s *Signaler) serveHTTP(w http.ResponseWriter, r *http.Request) (err error)
 	h := w.Header()
 	h.Set("Access-Control-Allow-Origin", "*")
 	h.Set("Access-Control-Allow-Methods", "*")
+	h.Set("Access-Control-Allow-Headers", "*")
+
+	if r.Method == http.MethodOptions {
+		w.Write([]byte("ok"))
+		return
+	}
 
 	user, pass, _ := r.BasicAuth()
 	auth := UserAuth{user, pass, r.URL.Query().Get("w")}
