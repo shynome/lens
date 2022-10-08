@@ -31,8 +31,8 @@ import (
 )
 
 func main() {
-	s := signaler.New(nil)
-  http.Handle("/signaler", s)
+	s := lens.New(nil)
+  	http.Handle("/signaler", s)
 	http.ListenAndServe(":7070", nil)
 }
 ```
