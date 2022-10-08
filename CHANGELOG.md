@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0] - 2022-10-09
+
+### Change
+
+- rewrite with echo
+
+# Changelog
+
 ## [1.2.1] - 2022-09-25
 
 ### Added
@@ -11,7 +19,6 @@
 ### Added
 
 - add cors headers
-
 
 ## [1.1.0] - 2022-09-22
 
