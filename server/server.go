@@ -3,12 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/lainio/err2/try"
-	"github.com/shynome/signaler"
+	"github.com/shynome/lens"
 )
 
 var Version = "dev"
@@ -20,7 +21,6 @@ var args struct {
 	AutoCreate         bool
 	ScopeCheckInterval string
 	ScopeSurvivalTime  string
-	TaskTimeout        string
 }
 
 func init() {
@@ -30,7 +30,6 @@ func init() {
 	flag.BoolVar(&args.AutoCreate, "auto-create", true, "allow auto create user scope")
 	flag.StringVar(&args.ScopeCheckInterval, "check-interval", "1s", "check user scope is should be delete interval")
 	flag.StringVar(&args.ScopeSurvivalTime, "survival-time", "5m", "auto create user scope survival time")
-	flag.StringVar(&args.TaskTimeout, "task-timeout", "10s", "dail task timeout")
 }
 
 func main() {
@@ -41,39 +40,39 @@ func main() {
 		return
 	}
 
-	scopes := signaler.NewUserScopes()
+	scopes := lens.NewUserScopes()
 	scopes.DisableAutoCreate = !args.AutoCreate
 	scopes.ScopeCheckInterval = try.To1(
 		time.ParseDuration(args.ScopeCheckInterval))
 	scopes.ScopeSurvivalTime = try.To1(
 		time.ParseDuration(args.ScopeSurvivalTime))
 
-	s := signaler.New(scopes)
-	s.CallTimeout = try.To1(
-		time.ParseDuration(args.TaskTimeout))
-
 	for _, userStr := range flag.Args() {
 		userArr := strings.Split(userStr, ":")
+		if len(userArr) == 1 {
+			continue
+		}
 		var (
 			user string
 			pass string
-			wt   string
 		)
-		switch len(userArr) {
-		case 1:
-			fallthrough
-		default:
-			continue
-		case 2:
-			user = userArr[0]
-			pass = userArr[1]
-		case 3:
-			user = userArr[0]
-			wt = userArr[1]
-			pass = strings.Join(userArr[2:], ":")
-		}
-		try.To1(scopes.Create(signaler.UserAuth{Username: user, Password: pass, WToken: wt}))
+		user = userArr[0]
+		pass = strings.Join(userArr[1:], ":")
+		try.To1(scopes.Create(lens.UserAuth{Username: user, Password: pass}))
 	}
 
-	http.ListenAndServe(args.Addr, s)
+	e := echo.New()
+	e.Use(middleware.BodyLimit("2M"))
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		Skipper:      middleware.DefaultSkipper,
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{"*"},
+		AllowHeaders: []string{"*"},
+	}))
+	e.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{Timeout: 15 * time.Second}))
+
+	scopes.WithEcho(e.Group(""))
+
+	e.HideBanner = true
+	try.To(e.Start(args.Addr))
 }

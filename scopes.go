@@ -1,17 +1,15 @@
-package signaler
+package lens
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
-	"github.com/lainio/err2"
 	"github.com/lainio/err2/try"
 )
 
 type UserScopes struct {
 	mu                *sync.RWMutex
-	userScopes        map[string]*UserScope
+	Scopes            map[string]*UserScope
 	DisableAutoCreate bool
 
 	ScopeSurvivalTime  time.Duration
@@ -21,44 +19,12 @@ type UserScopes struct {
 func NewUserScopes() *UserScopes {
 	return &UserScopes{
 		mu:                &sync.RWMutex{},
-		userScopes:        map[string]*UserScope{},
+		Scopes:            map[string]*UserScope{},
 		DisableAutoCreate: false,
 
 		ScopeSurvivalTime:  5 * time.Minute,
 		ScopeCheckInterval: time.Second,
 	}
-}
-
-var (
-	errUsernameRequired = fmt.Errorf("username is required")
-)
-
-func (scopes *UserScopes) Get(auth UserAuth) (s *UserScope, err error) {
-	defer err2.Return(&err)
-	defer func() { // keep scope alive
-		if s != nil {
-			s.KeepAlive()
-		}
-	}()
-
-	user, pass := auth.Username, auth.Password
-
-	if user == "" {
-		return nil, errUsernameRequired
-	}
-
-	scopes.mu.RLock()
-	s, ok := scopes.userScopes[user]
-	scopes.mu.RUnlock()
-
-	if ok {
-		try.To(
-			s.CheckPassword(pass))
-
-		return
-	}
-
-	return
 }
 
 func (scopes *UserScopes) AutoCreate(auth UserAuth) (s *UserScope, err error) {
@@ -77,12 +43,19 @@ func (scopes *UserScopes) Create(auth UserAuth) (s *UserScope, err error) {
 	scopes.mu.Lock()
 	defer scopes.mu.Unlock()
 
-	s = try.To1(
-		NewUserScope(auth))
+	s = try.To1(NewUserScope(auth))
 
 	user := s.Auth.Username
-	scopes.userScopes[user] = s
+	scopes.Scopes[user] = s
 
+	return
+}
+
+// Get if not exists will return nil
+func (scopes *UserScopes) Get(user string) (s *UserScope) {
+	scopes.mu.Lock()
+	defer scopes.mu.Unlock()
+	s = scopes.Scopes[user]
 	return
 }
 
@@ -101,9 +74,9 @@ func (scopes *UserScopes) DeleteAfter(scope *UserScope, d time.Duration) {
 func (scopes *UserScopes) Delete(user string) {
 	scopes.mu.Lock()
 	defer scopes.mu.Unlock()
-	_, ok := scopes.userScopes[user]
+	_, ok := scopes.Scopes[user]
 	if !ok { //deleted
 		return
 	}
-	delete(scopes.userScopes, user)
+	delete(scopes.Scopes, user)
 }

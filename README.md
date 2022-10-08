@@ -27,7 +27,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/shynome/signaler"
+	"github.com/shynome/lens"
 )
 
 func main() {
@@ -45,7 +45,7 @@ package main
 import (
 	"github.com/donovanhide/eventsource"
 	"github.com/lainio/err2/try"
-	"github.com/shynome/signaler/sdk"
+	"github.com/shynome/lens/sdk"
 )
 
 func main() {
@@ -74,7 +74,7 @@ import (
 	"fmt"
 
 	"github.com/lainio/err2/try"
-	"github.com/shynome/signaler/sdk"
+	"github.com/shynome/lens/sdk"
 )
 
 func main() {
