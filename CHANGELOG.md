@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.1] - 2022-10-11
+
+### Fix
+
+- sse subscribe failed with timeout middleware
+
+# Changelog
+
 ## [1.3.0] - 2022-10-09
 
 ### Change
