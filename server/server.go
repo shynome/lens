@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -69,7 +70,17 @@ func main() {
 		AllowMethods: []string{"*"},
 		AllowHeaders: []string{"*"},
 	}))
-	e.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{Timeout: 15 * time.Second}))
+	e.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{
+		Timeout: 15 * time.Second,
+		Skipper: func(c echo.Context) bool {
+			r := c.Request()
+			// skip sse subscribe
+			if r.Method == http.MethodGet && r.URL.Path == "/" {
+				return true
+			}
+			return false
+		},
+	}))
 
 	scopes.WithEcho(e.Group(""))
 
