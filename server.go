@@ -74,8 +74,11 @@ func HandleCall(c echo.Context) (err error) {
 	ess := scope.EventSourceServer()
 	ess.Publish(ev)
 
-	rbody := <-result
-	c.Blob(200, "application/octet-stream", rbody)
+	select {
+	case rbody := <-result:
+		c.Blob(200, "application/octet-stream", rbody)
+	case <-r.Context().Done():
+	}
 
 	return
 }
