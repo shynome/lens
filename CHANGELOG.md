@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.4] - 2022-10-12
+
+### Fix
+
+- sent a comment when sse connected for pass proxy
+
 ## [1.3.3] - 2022-10-12
 
 ### Fix
