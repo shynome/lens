@@ -36,8 +36,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	events, id := s.Events()
 	defer s.OffEventsReceiver(id)
 
-	w.WriteHeader(http.StatusOK)
-	w.(http.Flusher).Flush()
+	WriteHeader(w)
 
 	done := r.Context().Done()
 	for {
@@ -50,9 +49,17 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func WriteHeader(w http.ResponseWriter) {
+	defer w.(http.Flusher).Flush()
+	h := w.Header()
+	h.Set("Content-Type", "text/event-stream; charset=utf-8")
+	h.Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	h.Set("Connection", "keep-alive")
+	w.WriteHeader(http.StatusOK)
+}
+
 func FlushEvent(w http.ResponseWriter, ev Event) {
-	flusher := w.(http.Flusher)
-	defer flusher.Flush()
+	defer w.(http.Flusher).Flush()
 	io.WriteString(w, ev.String())
 }
 

@@ -2,7 +2,6 @@ package lens
 
 import (
 	"io"
-	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/lainio/err2"
@@ -36,8 +35,7 @@ func SubTasks(c echo.Context) (err error) {
 	events, id := ess.Events()
 	defer ess.OffEventsReceiver(id)
 
-	w.WriteHeader(http.StatusOK)
-	w.Flush()
+	sse.WriteHeader(w)
 
 	done := r.Context().Done()
 	for {
