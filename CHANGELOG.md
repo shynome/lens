@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.3] - 2022-10-12
+
+### Fix
+
+- add the missing header of sse api
+
 ## [1.3.2] - 2022-10-11
 
 ### Fix
@@ -11,7 +17,6 @@
 ### Fix
 
 - sse subscribe failed with timeout middleware
-
 
 ## [1.3.0] - 2022-10-09
 
