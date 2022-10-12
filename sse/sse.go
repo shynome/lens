@@ -56,6 +56,8 @@ func WriteHeader(w http.ResponseWriter) {
 	h.Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	h.Set("Connection", "keep-alive")
 	w.WriteHeader(http.StatusOK)
+
+	io.WriteString(w, ": a hack comment for pass caddy\n\n")
 }
 
 func FlushEvent(w http.ResponseWriter, ev Event) {
