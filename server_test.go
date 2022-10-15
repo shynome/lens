@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"sync"
 	"testing"
 	"time"
@@ -68,4 +69,18 @@ func runHandleCallService(client *sdk.Sdk) {
 			}(ev)
 		}
 	}()
+}
+
+func TestScopeKeepAlive(t *testing.T) {
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "http://aaa:bbb@127.0.0.1/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	scope := try.To1(NewUserScope(UserAuth{Username: "aaa", Password: "bbb"}))
+	c.Set(UserScopeCtxKey, scope)
+	go SubTasks(c)
+	time.Sleep(5 * time.Second)
+	if time.Since(scope.LastAliveAt) > time.Second {
+		t.Error("last alive should less than 1s.")
+	}
 }

@@ -35,7 +35,7 @@ func (scopes *UserScopes) AutoCreate(auth UserAuth) (s *UserScope, err error) {
 	if err != nil {
 		return
 	}
-	go scopes.DeleteAfter(s, scopes.ScopeSurvivalTime)
+	go scopes.AutoDelete(s)
 	return
 }
 
@@ -59,12 +59,10 @@ func (scopes *UserScopes) Get(user string) (s *UserScope) {
 	return
 }
 
-func (scopes *UserScopes) DeleteAfter(scope *UserScope, d time.Duration) {
+func (scopes *UserScopes) AutoDelete(scope *UserScope) {
 	for {
 		time.Sleep(scopes.ScopeCheckInterval)
-		now := time.Now()
-		expiresAt := scope.LastAliveAt.Add(d)
-		if expiresAt.Before(now) {
+		if time.Since(scope.LastAliveAt) > scopes.ScopeSurvivalTime {
 			scopes.Delete(scope.Auth.Username)
 			break
 		}

@@ -2,6 +2,7 @@ package lens
 
 import (
 	"io"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/lainio/err2"
@@ -34,6 +35,20 @@ func SubTasks(c echo.Context) (err error) {
 
 	events, id := ess.Events()
 	defer ess.OffEventsReceiver(id)
+
+	go func() { // keep user scope alive
+		t := time.NewTicker(time.Second)
+		done := r.Context().Done()
+		for {
+			select {
+			case <-done:
+				t.Stop()
+				return
+			case <-t.C:
+				go scope.KeepAlive()
+			}
+		}
+	}()
 
 	sse.WriteHeader(w)
 
