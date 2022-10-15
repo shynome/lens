@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.5] - 2022-10-15
+
+### Fix
+
+- scope keep alive now is working
+
 ## [1.3.4] - 2022-10-12
 
 ### Fix
