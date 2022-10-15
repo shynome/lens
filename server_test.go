@@ -2,6 +2,7 @@ package lens
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"math/rand"
 	"net"
@@ -73,14 +74,33 @@ func runHandleCallService(client *sdk.Sdk) {
 
 func TestScopeKeepAlive(t *testing.T) {
 	e := echo.New()
+	ctx, cancel := context.WithCancel(context.Background())
 	req := httptest.NewRequest(http.MethodGet, "http://aaa:bbb@127.0.0.1/", nil)
+	req = req.WithContext(ctx)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	scope := try.To1(NewUserScope(UserAuth{Username: "aaa", Password: "bbb"}))
+
+	scopes := NewUserScopes()
+	scopes.ScopeCheckInterval = time.Second
+	scopes.ScopeSurvivalTime = 7 * time.Second
+
+	scope := try.To1(scopes.AutoCreate(UserAuth{Username: "aaa", Password: "bbb"}))
 	c.Set(UserScopeCtxKey, scope)
 	go SubTasks(c)
+
 	time.Sleep(5 * time.Second)
 	if time.Since(scope.LastAliveAt) > time.Second {
 		t.Error("last alive should less than 1s.")
+	}
+
+	cancel()
+	time.Sleep(5 * time.Second)
+	if scopes.Get("aaa") == nil {
+		t.Error("scope should be alive")
+	}
+
+	time.Sleep(5 * time.Second)
+	if scopes.Get("aaa") != nil {
+		t.Error("scope should be deleted")
 	}
 }
