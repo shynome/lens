@@ -1,3 +1,7 @@
+## [Deprecated]
+
+use <https://github.com/shynome/lens2>
+
 ## 一个简易消息传递服务
 
 原始目标是 webrtc 的信令服务器, 但后面想了想, 其实可以做成简易的消息传递服务,
